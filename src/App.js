@@ -1,26 +1,87 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { Routes, Route, Navigate} from "react-router-dom";
+import { connect } from 'react-redux';
+import{auth, createUserProfileDocument} from './firebase/firebase.utils';
+import { createStructuredSelector } from 'reselect'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import HomePage from './pages/homepage/homepage';
+import ShopPage from './pages/shop/shop';
+import Header from './components/header/header';
+import SignInAndSignUpPage from './pages/sign-in-up/sign-in-up';
+import CheckoutPage from './pages/checkout/checkout';
+import { setCurrentUser } from './redux/user/user.actions';
+import { selectCurrentUser } from './redux/user/user.selector'
+
+class App extends React.Component{
+
+  
+
+unsubscribeFromAuth = null
+
+
+  componentDidMount(){
+
+    const {setCurrentUser} = this.props
+
+
+  this.unsubscribeFromAuth =  auth.onAuthStateChanged(async userAuth => {
+      
+
+      if(userAuth){
+        const userRef = await createUserProfileDocument(userAuth);
+
+        userRef.onSnapshot(snapShot =>{
+         setCurrentUser({
+           
+             id: snapShot.id,
+             ...snapShot.data()
+           
+         }) 
+
+
+         //console.log(this.state);
+        });
+      
+           
+      }else{
+
+        setCurrentUser({userAuth})
+
+      }     
+    });
+
+    
+  }
+
+  componentWillUnmount(){
+    this.unsubscribeFromAuth();
+  }
+
+  render(){
+    return (
+      <div >
+        <Header />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/signin" element={this.props.currentUser ? <Navigate replace={true} to="/"  /> : <SignInAndSignUpPage />} / >
+        </Routes>
+      </div>
+    );
+  }
+
+  
 }
 
-export default App;
+const mapStateToProps =   createStructuredSelector({
+  currentUser: selectCurrentUser
+})
+
+const mapDispatchToProps = (dispatch) => ({
+
+  setCurrentUser: user => dispatch(setCurrentUser(user))
+})
+
+export default connect(mapStateToProps,mapDispatchToProps )(App);
