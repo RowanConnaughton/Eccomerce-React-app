@@ -7,7 +7,7 @@ import { createStructuredSelector } from 'reselect'
 
 import HomePage from './pages/homepage/homepage';
 import ShopPage from './pages/shop/shop';
-import Header from './components/header/header';
+import Header from './components/header/header.component';
 import SignInAndSignUpPage from './pages/sign-in-up/sign-in-up';
 import CheckoutPage from './pages/checkout/checkout';
 import { setCurrentUser } from './redux/user/user.actions';
@@ -64,7 +64,7 @@ unsubscribeFromAuth = null
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/shop/*" element={<ShopPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/signin" element={this.props.currentUser ? <Navigate replace={true} to="/"  /> : <SignInAndSignUpPage />} / >
         </Routes>
